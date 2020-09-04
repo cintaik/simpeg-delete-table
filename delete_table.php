@@ -17,11 +17,12 @@
 		require_once "libs/koneksi_table.php";
 		require_once "libs/fungsi_buatan_table.php";
 
+		// Edit variable berikut
 		$midDir = "BKD";
-		// $appName = "simpeg";
 		$appName = "simpeg_2";
 		$parentDIr = "C:\\xampp\\htdocs\\dashboard\\{$midDir}\\{$appName}";
 		$db_target = "db_simpeg_medan_2";
+		// END
 		
 
 		try {
