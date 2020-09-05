@@ -1,6 +1,6 @@
 <?php 
 	
-	if (!isset($_GET["set"]) &&  $_GET["set"] != 1) {
+	if (!isset($_GET["set"]) ||  $_GET["set"] != 1) {
 		echo "	<script>
 					alert('Proses tidak diizinkan !');
 				</script>";
@@ -14,15 +14,15 @@
 		ini_set('max_execution_time', '0'); //300 seconds = 5 minutes
 		ini_set('memory_limit','8589934592'); // 8GB RAN
 
-		require_once "libs/koneksi_table.php";
-		require_once "libs/fungsi_buatan_table.php";
-
 		// Edit variable berikut
 		$midDir = "BKD";
 		$appName = "simpeg_2";
 		$parentDIr = "C:\\xampp\\htdocs\\dashboard\\{$midDir}\\{$appName}";
 		$db_target = "db_simpeg_medan_2";
 		// END
+
+		require_once "libs/koneksi_table.php";
+		require_once "libs/fungsi_buatan_table.php";
 		
 
 		try {
@@ -81,11 +81,13 @@
 		    echo "There is something wrong #2 : " . $e->getMessage();
 		}finally{
 	      	$result->free();
-	      	$connSchema->close();
 		}
 
 		// hapus table dari database
 		deleteTable($connSchema, $connDB, $unused_tables, $db_target);
+
+		$connSchema->close();
+		$connDB->close();
 
 		echo "<br><br>";
 		$endTime = microtime(true);

@@ -76,7 +76,6 @@
 			$sqlSchema = "SELECT TABLE_NAME AS ada_table FROM TABLES WHERE TABLE_SCHEMA = '{$dbTarget}' AND TABLE_NAME = '{$tbl_to_delete}'";
 			
 			$sqlDb = "DROP TABLE {$tbl_to_delete}"; // delete field_name tanpa spasi
-			$sqlSchemaDelete = "DELETE FROM TABLES WHERE TABLE_SCHEMA = '{$dbTarget}' AND TABLE_NAME = '{$tbl_to_delete}'"; // delete field_name dengan spasi
 			
 			try {
 
@@ -84,20 +83,23 @@
 				$row = $result->fetch_assoc();
 				if (!is_null($row["ada_table"])) {
 
+					$connDB->autocommit(0);
+					$connDB->query("SET FOREIGN_KEY_CHECKS=0"); // matikan cek constrain
+
 					// cek apakah nama_table memiliki spasi
 					if (preg_match("/\s/", $row["ada_table"])) {
-						$connSchema->autocommit(0);
-						$connSchema->query("SET FOREIGN_KEY_CHECKS=0"); // matikan cek constrain
-						$connSchema->query($sqlSchemaDelete);
-						$connSchema->query("SET FOREIGN_KEY_CHECKS=1"); // hidupkan cek constrain
-						$connSchema->commit();
-					}else{
-						$connDB->autocommit(0);
-						$connDB->query("SET FOREIGN_KEY_CHECKS=0"); // matikan cek constrain
+						$newname = str_replace(" ", "_", $tbl_to_delete);
+						$sqlRenameTable = "RENAME TABLE `{$tbl_to_delete}` TO `{$newname}`"; // rename table with whitespace
+						$sqlDb = "DROP TABLE {$newname}"; // delete field_name dengan spasi
+						$connDB->query($sqlRenameTable);
 						$connDB->query($sqlDb);
-						$connDB->query("SET FOREIGN_KEY_CHECKS=1"); // hidupkan cek constrain
-						$connDB->commit();
+
+					}else{
+						$connDB->query($sqlDb);
 					}
+
+					$connDB->query("SET FOREIGN_KEY_CHECKS=1"); // hidupkan cek constrain
+					$connDB->commit();
 
 					// cek apakah berhasil dihapusdan tampilkan
 					cekTable($connSchema, $dbTarget, $tbl_to_delete);
@@ -111,10 +113,8 @@
 			}
 		}
 		$result->free();
-		$connSchema->close();
-		$connDB->close();
 
-		$hasil = "Berhasil ! {$jlh_target_table}, Tabel tidak ditemukan<br>";
+		$hasil = "Berhasil ! {$jlh_target_table}, Tabel tidak digunakan<br>";
 		$hasil .= $tbl_not_found . "<br>";
 		echo $hasil;
 	}
@@ -134,7 +134,6 @@
 			echo "<i>cekTable()</i> " . $e->getMessage() . " " . $e->getLine() . "<br>";
 		}finally{
 			$result->free();
-			$connSchema->close();
 		}
 	}
 
